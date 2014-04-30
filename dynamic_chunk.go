@@ -21,23 +21,23 @@ const (
 	bufSZ = 4096
 )
 
-func reset(dir string) (h hash.Hash, f *os.File, err error) {
-	h = sha1.New()
-	f, err = ioutil.TempFile(dir, "working_")
-	return
+func reset(dir string) (*hash.Hash, *os.File, error) {
+	h := sha1.New()
+	f, err := ioutil.TempFile(dir, "working_")
+	return &h, f, err
 }
 
-func writeSegment(seg []byte, f *os.File, h hash.Hash) {
+func writeSegment(seg []byte, f *os.File, h *hash.Hash) {
 	f.Write(seg)
-	h.Write(seg)
+	(*h).Write(seg)
 }
 
-func closeChunk(f *os.File, h hash.Hash) (name string, size int64, err error) {
+func closeChunk(f *os.File, h *hash.Hash) (name string, size int64, err error) {
 	f.Sync()
 	fi, _ := f.Stat()
 	size = fi.Size()
 	f.Close()
-	name = fmt.Sprintf("%x", h.Sum(nil))
+	name = fmt.Sprintf("%x", (*h).Sum(nil))
 	fname := f.Name()
 	err = os.Rename(fname, filepath.Join(filepath.Dir(fname), name))
 	return
